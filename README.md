@@ -25,6 +25,6 @@ RC Dr. Mad Thrust Electronic Receiver Operated On/Off Switch (x2)
 EBOWA Electric Air Water Valve DC 6V  
 LED strip - TBC
 
-~ Images/Videos - TBC ~
+~ Images/Videos - https://photos.app.goo.gl/QmSYSMhcgNzhQ3Vj7 ~
 
 Project contains (questionable drawn) circuit diagram + Test Sketches
