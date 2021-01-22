@@ -22,7 +22,10 @@ AZDelivery HD44780 16x2 Serial LCD
 One Channel Relay Modules (x2)  
 RC Dr. Mad Thrust Electronic Receiver Operated On/Off Switch (x2)  
 4pcs RC Model Drift Car LED  
-EBOWA Electric Air Water Valve DC 6V  
+EBOWA Electric Air Water Valve DC 6V 
+HUABAN DS18B20 Temperature Sensor Module  
+Poweradd EnergyCell 5000mAh Portable Charger  
+DFROBOT Non-contact Liquid Level Switch
 LED strip - TBC
 
 ~ Images/Videos - https://photos.app.goo.gl/QmSYSMhcgNzhQ3Vj7 ~
