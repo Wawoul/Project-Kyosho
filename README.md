@@ -3,7 +3,7 @@ Installing an array of sensors and leds into a RC nitro truggy
 
 ------------------------------------------------------------
 
-The truggy: kKyosho Inferno ST  
+The truggy: Kyosho Inferno ST  
 Controller: 6 Channel FS-GT5 cw FS-BS6
 
 Electronic mods;  
@@ -22,7 +22,7 @@ AZDelivery HD44780 16x2 Serial LCD
 One Channel Relay Modules (x2)  
 RC Dr. Mad Thrust Electronic Receiver Operated On/Off Switch (x2)  
 4pcs RC Model Drift Car LED  
-EBOWA Electric Air Water Valve DC 6V 
+EBOWA Electric Air Water Valve DC 6V  
 HUABAN DS18B20 Temperature Sensor Module  
 Poweradd EnergyCell 5000mAh Portable Charger  
 DFROBOT Non-contact Liquid Level Switch
