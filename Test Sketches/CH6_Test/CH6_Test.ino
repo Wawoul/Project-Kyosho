@@ -1,4 +1,4 @@
-#define rcPin6 4   // Pin 4 Connected to CH6 of Transmitter;
+#define rcPin6 6   // Pin 4 Connected to CH6 of Transmitter;
 
 
 int ch6 = 0;  // Receiver Channel 5 PPM value
