@@ -36,10 +36,6 @@
 //Accelerate - 995-1490
 //////////////////////////////
 
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include <OneWire.h>  // Including the library of DS1820 Temperature module
-#include <DallasTemperature.h>  // Including the library of DS1820 Temperature module
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
 #include <avr/power.h>
@@ -53,11 +49,7 @@
 #define PINHT 8      // LED Pin D8
 #define N_LEDS 4  // Num of Under LEDS
 #define N_HTLEDS 4 // Num of Head/Tail LEDS
-#define ONE_WIRE_BUS 2             // Initializing the Arduino pin 2 for temperature module
 
-OneWire ourWire(ONE_WIRE_BUS);     // Declaring a variable named our wire
-DallasTemperature sensors ( &ourWire ); // Asking the Dallas temperature library to use the one wire library
-LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2); // LCD Setup
 int tempPin = 2; //Temp Sen
 int introFlag = 0;
 int ch6 = 0;  // Receiver Channel 6 PPM value
@@ -65,55 +57,14 @@ int ch5 = 0;  // Receiver Channel 6 PPM value
 int ch4 = 0;  // Receiver Channel 6 PPM value
 int ch2 = 0;  // Receiver Channel 6 PPM value
 
-// Parameter 1 = number of pixels in strip
-// Parameter 2 = Arduino pin number (most are valid)
-// Parameter 3 = pixel type flags, add together as needed:
-//   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
-//   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
-//   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
-//   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-//   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_LEDS, PINU, NEO_GRB + NEO_KHZ800); // Under LEDs
-Adafruit_NeoPixel stripht = Adafruit_NeoPixel(N_HTLEDS, PINHT, NEO_GRB + NEO_KHZ800); // Head/Tail LEDs
 
-//-----------------------------------
-// Police LED Effect
-//-----------------------------------
-const int frameMax = 19;
-int frames[frameMax][8][3] = {
-  {{0, 0, 255 }, {0, 0, 255 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }},
-  {{0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }},
-  {{0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 255 }, {0, 0, 255 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }},
-  {{0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 255 }, {0, 0, 255 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }},
-  {{0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {255, 255, 255}, {255, 255, 255}, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {255, 255, 255}, {255, 255, 255}, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 0 }, {255, 0, 0 }, {255, 0, 0}, {0, 0, 0 }, {255, 0, 0 }, {0, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }},
-  {{0, 0, 255 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {255, 0, 0 }},
-  {{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255}},
-  {{0, 0, 255 }, {0, 0, 255 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 0 },{0, 0, 0 },{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255},{0, 0, 0 },{0, 0, 0 }},
-  {{0, 0,  0}, {0, 0, 0 }, {255, 0, 0}, {255, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }}
-    };
-
-int durations[frameMax] = {1000, 100, 100, 50, 50, 10, 50, 50, 50,40,50,40,100,100,100,20,40,20,100};
-int frameCurrent = 0;
 
 //-----------------------------------
 // SETUP
 //-----------------------------------
 
 void setup() {
- lcd.init();    //LCD Screen
- lcd.backlight(); //LCD Screen
- sensors.begin(); //Temp Sensor
- pinMode(3, INPUT); //Fuel Sensor
  pinMode(rcPin6, INPUT); //CH6 Reader
  pinMode(rcPin5, INPUT); //CH5 Reader
  pinMode(rcPin4, INPUT); //CH4 Reader
@@ -167,55 +118,6 @@ void loop() {
     for (int i = 0; i < N_HTLEDS; ++i)
       {
       stripht.setPixelColor(i, 255, 255, 255); //White
-      }
-      stripht.show();
-    }
-    
- //3- 1210-1340 - Blue
- if (ch5 >= 1210 && ch5 <= 1340) {
-    for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 0, 0, 255); //Blue
-      }
-      stripht.show();
-    }
- //4- 1340-1470 - RED
- if (ch5 >= 1340 && ch5 <= 1471) {
-    for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 255, 0, 0); //RED
-      }
-      stripht.show();
-    }
-  //5- 1470-1600 - GREEN
-  if (ch5 >= 1470 && ch5 <= 1600) {
-   for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 0, 255, 0); //GREEN
-      }
-      stripht.show();
-    }
- //6- 1600-1730 - 
- if (ch5 >= 1600 && ch5 <= 1730) {
-     for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 144, 250, 14); //Yellow
-      }
-      stripht.show();
-    }
- //7- 1730-1860 - YELLOW
- if (ch5 >= 1730 && ch5 <= 1860) {
-    for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 255, 255, 0); //Yellow
-      }
-      stripht.show();
-    }
- //8- 1860-1990 - 
- if (ch5 >= 1860 && ch5 <= 1990) {
-     for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 54, 201, 154); 
       }
       stripht.show();
     }

@@ -1,13 +1,13 @@
 //--------------------------------------------------------------------------------------
-//  Project Kyosho - 27/01/2021
-//  By Ewen Paterson - Rev 3
+//  Project Kyosho - 29/01/2021
+//  By Ewen Paterson - Rev 4
 //
 //  Code for leds in a RC nitro truggy
 //
 //  ArduinoIDE ATmega328P Micro Controller
 //--------------------------------------------------------------------------------------
 //////////////////////////////
-// CH6 PWM Range and effects~
+// CH6 PWM Range - LED effects~
 // Top - 995-996
 // Mid - 1490-1498
 // Bot - 1985-1991
@@ -20,12 +20,12 @@
 // 7- 1730-1860  - Rainbow
 // 8- 1860-1990  - Police
 //
-//CH5 PWM Range and effects~
+//CH5 PWM Range - LED Static colours~
 //Top - 995-996
 //Mid - 1450-1456
 //Bot - 1988-1995
 //
-//CH4 PWM Range and effects~
+//CH4 PWM Range - Off>Head/Tail>LED Brightness~
 //Bot - 995-996
 //Mid - 1490-1498
 //Top - 1985-1991
@@ -37,23 +37,24 @@
 //////////////////////////////
 
 #include <Adafruit_NeoPixel.h>
-#ifdef __AVR__
-#include <avr/power.h>
-#endif
+#define N_LEDS 44  // Num of Under LEDS
 
-#define rcPin6 4   // Pin D4 Connected to CH6 of Transmitter;
-#define rcPin5 6   // Pin D6 onnected to CH5 of Transmitter;
-#define rcPin4 7   // Pin D7 Connected to CH4 of Transmitter;
-#define rcPin2 10   // Pin D10 Connected to CH2 of Transmitter;
-#define PINU 5      // LED Pin D5
-#define PINHT 8      // LED Pin D8
-#define N_LEDS 4  // Num of Under LEDS
-#define N_HTLEDS 4 // Num of Head/Tail LEDS
+int ledHead = 6; // Head light LEDs
+int ledTail = 7; // Tail light LEDs
 
-int ch6 = 0;  // Receiver Channel 6 PPM value
-int ch5 = 0;  // Receiver Channel 6 PPM value
-int ch4 = 0;  // Receiver Channel 6 PPM value
-int ch2 = 0;  // Receiver Channel 6 PPM value
+byte PWM_PIN1 = 3; // Pin D3 onnected to CH5 of receiver
+byte PWM_PIN2 = 10; // Pin D10 Connected to CH2 of receiver
+byte PWM_PIN3 = 2; // Pin D2 Connected to CH4 of receiver
+byte PWM_PIN4 = 4; // Pin D4 Connected to CH6 of receiver
+
+int pwm_value1;
+int pwm_value2;
+int pwm_value3;
+int pwm_value4;
+
+const int ledPin5 = 5; // LED Strip
+const int ledPin7 = 7; // Head light LEDs
+const int ledPin6 = 6; // Tail light LEDs
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)
@@ -63,8 +64,7 @@ int ch2 = 0;  // Receiver Channel 6 PPM value
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_LEDS, PINU, NEO_GRB + NEO_KHZ800); // Under LEDs
-Adafruit_NeoPixel stripht = Adafruit_NeoPixel(N_HTLEDS, PINHT, NEO_GRB + NEO_KHZ800); // Head/Tail LEDs
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_LEDS, ledPin5, NEO_GRB + NEO_KHZ800); // Under LEDs
 
 //-----------------------------------
 // Police LED Effect
@@ -86,13 +86,13 @@ int frames[frameMax][8][3] = {
   {{0, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
   {{0, 0, 0 }, {255, 0, 0 }, {255, 0, 0}, {0, 0, 0 }, {255, 0, 0 }, {0, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }},
   {{0, 0, 255 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {255, 0, 0 }},
-  {{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255}},
+  {{255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}},
   {{0, 0, 255 }, {0, 0, 255 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }},
-  {{0, 0, 0 },{0, 0, 0 },{255, 255, 255},{255, 255, 255},{255, 255, 255},{255, 255, 255},{0, 0, 0 },{0, 0, 0 }},
+  {{0, 0, 0 }, {0, 0, 0 }, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {0, 0, 0 }, {0, 0, 0 }},
   {{0, 0,  0}, {0, 0, 0 }, {255, 0, 0}, {255, 0, 0 }, {255, 0, 0 }, {255, 0, 0 }, {0, 0, 0 }, {0, 0, 0 }}
-    };
+};
 
-int durations[frameMax] = {1000, 100, 100, 50, 50, 10, 50, 50, 50,40,50,40,100,100,100,20,40,20,100};
+int durations[frameMax] = {1000, 100, 100, 50, 50, 10, 50, 50, 50, 40, 50, 40, 100, 100, 100, 20, 40, 20, 100};
 int frameCurrent = 0;
 
 //-----------------------------------
@@ -100,12 +100,20 @@ int frameCurrent = 0;
 //-----------------------------------
 
 void setup() {
- strip.begin(); //Under LED Start
- stripht.begin(); //Head/Tail LED Start
- strip.show(); //Initialize all pixels to 'off'
- stripht.show(); //Initialize all pixels to 'off'
- strip.setBrightness(10); //Sets LEDs brightness
- stripht.setBrightness(10); //Sets LEDs brightness
+  strip.begin(); //Under LED Start
+  strip.show(); //Initialize all pixels to 'off'
+  strip.setBrightness(10); //Sets LEDs brightness
+
+  pinMode(PWM_PIN1, INPUT);
+  pinMode(PWM_PIN2, INPUT);
+  pinMode(PWM_PIN3, INPUT);
+  pinMode(PWM_PIN4, INPUT);
+
+  pinMode(ledPin5, OUTPUT); // LED Strip
+  pinMode(ledPin6, OUTPUT); // Tail light LEDs
+  pinMode(ledPin7, OUTPUT); // Head light LEDs
+
+  Serial.begin(115200);
 }
 
 //-----------------------------------
@@ -113,138 +121,124 @@ void setup() {
 //-----------------------------------
 
 void loop() {
- //Start-up Display
-// if (introFlag == 0){ 
-//   lcd.clear();
-//   lcd.setCursor(0, 0);      // start to print at the first row
-//   lcd.print("   - KYOSHO -");
-//   lcd.setCursor(0, 1);
-//   lcd.print("* THE KAMIKAZE *");
-//   delay(3000);  
-//   lcd.clear();
-//   introFlag = 1;
-// }
 
-//-----------------------------------
-// //Fuel Display                                    
-// lcd.setCursor(0, 0);
-// if (digitalRead(3) == HIGH) {
-//  lcd.print("Fuel  : LOW");
-// } else {
-//  lcd.print("Fuel  : OK ");
-// }
-//
-////-----------------------------------
-// //Temp Display    
-// sensors.requestTemperatures();
-// lcd.setCursor(0, 1);      // start to print at the first row
-// lcd.print("Engine: ");
-// lcd.print(sensors.getTempCByIndex(0), 1);    // print the temperature in Celsius
-// lcd.print((char)223);      // print ° character
-// lcd.print("C");
-// delay(500);
+  pwm_value1 = pulseIn(PWM_PIN1, HIGH); // Pin D3 onnected to CH5 of receiver
+  pwm_value2 = pulseIn(PWM_PIN2, HIGH); // Pin D10 Connected to CH2 of receiver
+  pwm_value3 = pulseIn(PWM_PIN3, HIGH); // Pin D2 Connected to CH4 of receiver
+  pwm_value4 = pulseIn(PWM_PIN4, HIGH); // Pin D4 Connected to CH6 of receiver
 
-//-----------------------------------
- //CH2, CH4, CH5 LED control
-  ch4 = pulseIn(rcPin4, HIGH, 20000);  // (Pin, State, Timeout) //Brightness
-  if (ch4 >= 950 && ch4 <= 1000) {
-        stripht.setBrightness(10); //Sets LEDs brightness
-    }
-  if (ch4 >= 1450 && ch4 <= 1550) { //2- 1490-1498  - High Beam Head & Tail
-        stripht.setBrightness(100); //Sets LEDs brightness        
-    }
-   if (ch4 >= 1950 && ch4 <= 2000) {  //3- 1985-1991 - High Beam ALL
-      stripht.setBrightness(100); //Sets LEDs brightness
-      strip.setBrightness(100); //Sets LEDs brightness
-    }
-    
-  ch2 = pulseIn(rcPin2, HIGH, 20000);  // (Pin, State, Timeout) //Break
-  if (ch2 >= 1500) {
-    stripht.setPixelColor(1, 255, 0, 0); //Red
-    stripht.setPixelColor(2, 255, 0, 0); //Red
-    stripht.show();
-   }
-   
-
- ch5 = pulseIn(rcPin5, HIGH, 20000);  // (Pin, State, Timeout) //Effect
- //1- 950-1080 - off
- if (ch5 >= 950 && ch5 <= 1080) {
-   for (int i = 0; i < N_HTLEDS; ++i) {
-      stripht.setPixelColor(i, 0, 0, 0); //CLEAR
-      }
-      stripht.show();
-    }
-    
- //2- 1082-1210  - White
- if (ch5 >= 1082 && ch5 <= 1210) {
-    for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 255, 255, 255); //White
-      }
-      stripht.show();
-    }
-    
- //3- 1210-1340 - Blue
- if (ch5 >= 1210 && ch5 <= 1340) {
-    for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 0, 0, 255); //Blue
-      }
-      stripht.show();
-    }
- //4- 1340-1470 - RED
- if (ch5 >= 1340 && ch5 <= 1471) {
-    for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 255, 0, 0); //RED
-      }
-      stripht.show();
-    }
-  //5- 1470-1600 - GREEN
-  if (ch5 >= 1470 && ch5 <= 1600) {
-   for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 0, 255, 0); //GREEN
-      }
-      stripht.show();
-    }
- //6- 1600-1730 - 
- if (ch5 >= 1600 && ch5 <= 1730) {
-     for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 144, 250, 14); //Yellow
-      }
-      stripht.show();
-    }
- //7- 1730-1860 - YELLOW
- if (ch5 >= 1730 && ch5 <= 1860) {
-    for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 255, 255, 0); //Yellow
-      }
-      stripht.show();
-    }
- //8- 1860-1990 - 
- if (ch5 >= 1860 && ch5 <= 1990) {
-     for (int i = 0; i < N_HTLEDS; ++i)
-      {
-      stripht.setPixelColor(i, 54, 201, 154); 
-      }
-      stripht.show();
-    }
+  if (pwm_value1 > 1470) {
+    digitalWrite(ledPin5, LOW);
+    Serial.println(pwm_value1);
+                      for (int i = 0; i < N_LEDS; ++i)
+                      {
+                        strip.setPixelColor(i, 0, 0, 0); 
+                      }
+                      strip.show();
+                    }
+                  
+  else {
+    digitalWrite(ledPin5, LOW);
+     for (int i = 0; i < N_LEDS; ++i)
+                      {
+                        strip.setPixelColor(i, 255, 255, 255); //White
+                      }
+                      strip.show();
+                    }
+                    
+  if (pwm_value2 >= 1500) {
+    digitalWrite(ledPin7, HIGH);  // turn brake light on
+    Serial.println(pwm_value2);
+  }
+  else {
+    digitalWrite(ledPin7, LOW);
+  }
+  if (pwm_value3 > 1470) {
+    digitalWrite(ledPin6, HIGH);
+    Serial.println(pwm_value3);
+  }
+  else {
+    digitalWrite(ledPin6, LOW);
+  }
 }
+
+//-----------------------------------
+// Class
+//-----------------------------------
 //
-////-----------------------------------
-// //CH6 LED control
-// ch6 = pulseIn(rcPin6, HIGH, 20000);  // (Pin, State, Timeout)
+//void ledStatic() {
+//ch5 = pulseIn(rcPin5, HIGH, 20000);  // (Pin, State, Timeout) //Effect
 // //1- 950-1080 - off
-// if (ch6 >= 950 && ch6 <= 1080) {
-//   for (int i = 0; i < N_LEDS; ++i)
+// if (ch5 >= 950 && ch5 <= 1080) {
+//      ledUnderFlagCH5 = 0;
+//      ledUnderFlagCH6 = 1;
+// }
+// //2- 1082-1210  - White
+// if (ch5 >= 1082 && ch5 <= 1210) {
+//    for (int i = 0; i < N_LEDS; ++i)
 //      {
-//      strip.setPixelColor(i, 0, 0, 0); //CLEAR
+//      strip.setPixelColor(i, 255, 255, 255); //White
 //      }
 //      strip.show();
 //    }
+// //3- 1210-1340 - Blue
+// if (ch5 >= 1210 && ch5 <= 1340) {
+//    for (int i = 0; i < N_LEDS; ++i)
+//      {
+//      strip.setPixelColor(i, 0, 0, 255); //Blue
+//      }
+//      strip.show();
+//    }
+// //4- 1340-1470 - RED
+// if (ch5 >= 1340 && ch5 <= 1471) {
+//    for (int i = 0; i < N_LEDS; ++i)
+//      {
+//      strip.setPixelColor(i, 255, 0, 0); //RED
+//      }
+//      strip.show();
+//    }
+//  //5- 1470-1600 - GREEN
+//  if (ch5 >= 1470 && ch5 <= 1600) {
+//   for (int i = 0; i < N_LEDS; ++i)
+//      {
+//      strip.setPixelColor(i, 0, 255, 0); //GREEN
+//      }
+//      strip.show();
+//    }
+// //6- 1600-1730 -
+// if (ch5 >= 1600 && ch5 <= 1730) {
+//     for (int i = 0; i < N_LEDS; ++i)
+//      {
+//      strip.setPixelColor(i, 144, 250, 14); //Yellow
+//      }
+//      strip.show();
+//    }
+// //7- 1730-1860 - YELLOW
+// if (ch5 >= 1730 && ch5 <= 1860) {
+//    for (int i = 0; i < N_LEDS; ++i)
+//      {
+//      strip.setPixelColor(i, 255, 255, 0); //Yellow
+//      }
+//      strip.show();
+//    }
+// //8- 1860-1990 -
+// if (ch5 >= 1860 && ch5 <= 1990) {
+//     for (int i = 0; i < N_LEDS; ++i)
+//      {
+//      strip.setPixelColor(i, 54, 201, 154);
+//      }
+//      strip.show();
+//    }
+//}
+//
+////CH6 LED control
+//void ledEffect() {
+// ch6 = pulseIn(rcPin6, HIGH, 20000);  // (Pin, State, Timeout)
+// //1- 950-1080 - off
+// if (ch6 >= 950 && ch6 <= 1080) {
+//      ledUnderFlagCH5 = 1;
+//      ledUnderFlagCH6 = 0;
+// }
 // //2- 1082-1210  - Blue
 // if (ch6 >= 1082 && ch6 <= 1210) {
 //    for (int i = 0; i < N_LEDS; ++i)
@@ -290,12 +284,10 @@ void loop() {
 //    police1(strip.Color(255,   0,   0), durations[frameCurrent]);
 //    frameCurrent++;
 //    if (frameCurrent >= frameMax) frameCurrent = 0;
-//    }
-//}
+//     }
+//   }
 //
-////-----------------------------------
-//// Class
-////-----------------------------------
+//
 //
 //void showStrip() {
 // #ifdef ADAFRUIT_NEOPIXEL_H
@@ -317,27 +309,6 @@ void loop() {
 //  }
 //  showStrip();
 //}
-//
-////void showStripht() {
-//// #ifdef ADAFRUIT_NEOPIXEL_H
-////   // NeoPixel
-////   stripht.show();
-//// #endif
-////}
-////
-////void setPixelht(int Pixel, byte red, byte green, byte blue) {
-//// #ifdef ADAFRUIT_NEOPIXEL_H
-////   // NeoPixel
-////   stripht.setPixelColor(Pixel, strip.Color(red, green, blue));
-//// #endif
-////}
-////
-////void setAllht(byte red, byte green, byte blue) {
-////  for(int i = 0; i < N_LEDS; i++ ) {
-////    setPixelht(i, red, green, blue);
-////  }
-////  showStripht();
-////}
 //
 ////Rainbow Cycle LED Pattern
 //void rainbowCycle(int SpeedDelay) {
@@ -373,21 +344,6 @@ void loop() {
 //  return c;
 //}
 //
-//////Rainbow Cycle LED Pattern Head Tail
-////void rainbowCycleht(int SpeedDelay) {
-////  byte *c;
-////  uint16_t i, j;
-////
-////  for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
-////    for(i=0; i< N_LEDS; i++) {
-////      c=Wheel(((i * 256 / N_LEDS) + j) & 255);
-////      setPixelht(i, *c, *(c+1), *(c+2));
-////    }
-////    showStripht();
-////    delay(SpeedDelay);
-////  }
-////}
-//
 ////Fade LED Pattern
 //void RGBLoop(){
 //  for(int j = 0; j < 3; j++ ) {
@@ -414,31 +370,6 @@ void loop() {
 //  }
 //}
 //
-//////Fade LED Pattern
-////void RGBLoopht(){
-////  for(int j = 0; j < 3; j++ ) {
-////    // Fade IN
-////    for(int k = 0; k < 256; k++) {
-////      switch(j) {
-////        case 0: setAllht(k,0,0); break;
-////        case 1: setAllht(0,k,0); break;
-////        case 2: setAllht(0,0,k); break;
-////      }
-////      showStripht();
-////      delay(3);
-////    }
-////    // Fade OUT
-////    for(int k = 255; k >= 0; k--) {
-////      switch(j) {
-////        case 0: setAllht(k,0,0); break;
-////        case 1: setAllht(0,k,0); break;
-////        case 2: setAllht(0,0,k); break;
-////      }
-////      showStripht();
-////      delay(3);
-////    }
-////  }
-////}
 //
 ////Police LED Pattern
 //void police1(uint32_t color, int wait) {

@@ -1,4 +1,4 @@
-#define rcPin6 6   // Pin 4 Connected to CH6 of Transmitter;
+#define rcPin6 10   // Pin 4 Connected to CH6 of Transmitter;
 
 
 int ch6 = 0;  // Receiver Channel 5 PPM value
@@ -12,7 +12,7 @@ void setup() {
 void loop() {
 
 // Read in the length of the signal in microseconds
-  ch6 = pulseIn(rcPin6, HIGH, 20000);  // (Pin, State, Timeout)
+  ch6 = pulseIn(rcPin6, HIGH, 30000);  // (Pin, State, Timeout)
 
   Serial.print("Channel #6: ");
   Serial.println(ch6);
