@@ -20,7 +20,7 @@ LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2); // LCD Setup
 int tempPin = 8; //Temp Sen
 int introFlag = 0;
 
-#define N_LEDS 44  // Num of Under LEDS
+#define N_LEDS 46  // Num of Under LEDS
 
 int ledHead = 6; // Head light LEDs
 int ledTail = 7; // Tail light LEDs
