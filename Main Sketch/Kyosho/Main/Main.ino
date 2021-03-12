@@ -1,6 +1,6 @@
 //--------------------------------------------------------------------------------------
-//  Project Kyosho - 01/03/2021
-//  By Ewen Paterson - Rev 5
+//  Project Kyosho - 12/03/2021
+//  By Ewen Paterson - Rev 5.1
 //
 //  Code for fuel and temp sensor fitted to a RC nitro truggy
 //  Including RGB Leds and led head/tail lights
@@ -98,7 +98,7 @@ void loop() {
  sensors.requestTemperatures();
  lcd.setCursor(0, 1);      // start to print at the first row
  lcd.print("Engine: ");
- lcd.print(sensors.getTempCByIndex(0), 1);    // print the temperature in Celsius
+ lcd.print(sensors.getTempCByIndex(0)-7, 1);    // print the temperature in Celsius
  lcd.print((char)223);      // print ° character
  lcd.print("C");
  //delay(500);
@@ -110,7 +110,7 @@ void loop() {
   pwm_value4 = pulseIn(PWM_PIN4, HIGH); // Pin D4 Connected to CH6 of receiver
 
   // CH5 signal
-  if (pwm_value1 < 1100 && pwm_value4 < 1100) {
+  if (pwm_value1 < 1050 && pwm_value4 < 1050) {
     digitalWrite(ledPin5, LOW);
     Serial.println(pwm_value1);
                       for (int i = 0; i < N_LEDS; ++i)
